@@ -1,7 +1,8 @@
 mydata <- read.csv(file="bank.csv", sep=';')
-
+#1)      DATA MANIPULATION TASK
 mydata[-which(is.na(mydata)), ] #checking if there is any missing data
 
+##- select random subsample of data set;
 library(data.table)
 set.seed(10)
 mydata <- data.table(mydata)
@@ -11,23 +12,20 @@ dt<-mydata[sample(.N, 1000)] #selecting random 1000 rows from dataset
 unique(dt) #notice we have a lot of missing information in 'poutcome' variable
 unique(dt$poutcome)
 table(dt$poutcome=="unknown")
-
+##- filter desired rows using simple and more complex conditions;
 library(dplyr)
 mydata %>% filter(housing=='yes' & loan=='yes' & age<25) ->curiosity #just for curiosity checking if there's 
 #anyone with housing and personal loans in data under age of 25
 
-
+##- drop unnecessary variables, rename some variables;
 dt1 <- dt %>% select (!c("poutcome","day","month")) #droping time variables that is unnecessary in log regression 
 #and poutcome because it's missing a lot of information
 table(dt1=="unknown") # we can see that there is still some missing ingormation, so we drop those rows
-
 dt1[dt1=="unknown"] <- NA #making unkown as a NA
 dt1<-na.omit(dt1) #droped all NA
-
-
 names(dt1)[names(dt1) == "y"] <- "subscribed" #renaming variable
 
-
+##- calculate summarizing statistics (for full sample and by categorical variables as well);
 summary(dt1) #basic statistics of data sample
 tapply(dt1$balance, dt1$job, summary) #Average yearly balance grouped by job statistics
 
@@ -36,9 +34,9 @@ library(Hmisc)
 describe(dt1$job) #we can see that in out data sample mostly appears people working with management.
 #They consists of 25.5% of our sample
 describe(dt1$education) #We notice that the majority, over 50.9% consists of secondary education level, 35.3% tertiary and 13.8% primary
+##- create new variables using simple transformation and custom functions;
 library(dplyr)
 new <- mutate(dt1, average=duration/campaign) #added average campaign time.
-
 
 library(data.table)
 funkcija <- function(new_var){
@@ -47,12 +45,12 @@ funkcija <- function(new_var){
   return(data.table(data))
 }
 funkcija(naujas) #created new variable with custom function.
-
+##- order data set by several variables.
 order<-order(dt1$age, dt1$balance) #ordered data by age and balance
 dt1[order,]
 
 ################################################
-#data vizualization
+#2)      DATA VISUALISATION TASK
 #Bar plot
 library(Hmisc)
 describe(dt1$subscribed)
@@ -85,7 +83,6 @@ pie(Pd$Freq,
     main = "Rate of different jobs in data")
 #
 #corelation plot
-
 myPanel <- function(x, y, z, ...){
   lattice::panel.levelplot(x,y,z,...)
   my_text <- ifelse(!is.na(z), paste0(round(z, 4)), "")
@@ -96,8 +93,6 @@ kor <- dt1 %>% select (!c("job","marital","education","default","housing","loan"
 #
 mask = cor(kor, use = "complete.obs")
 mask[upper.tri(mask, diag = TRUE)] <- NA
-#
-#
 lattice::levelplot(mask, 
                    panel = myPanel, 
                    col.regions = viridisLite::viridis(100), 
@@ -105,8 +100,9 @@ lattice::levelplot(mask,
 
 
 #################################################################################################
-mydata <- read.csv(file="bank.csv", sep=';')
-
+#3)      MODELLING TASK
+mydata <- read.csv(file="bank.csv", sep=';')#loaded raw dataset
+#reusing some code from 1) task
 library(data.table)
 set.seed(10)
 mydata <- data.table(mydata)
